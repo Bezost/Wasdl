@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WAS-DL</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#00e5ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WAS-DL">
+<style>
+body{background:#0a0a0f;color:#e8e8f0;font-family:monospace;padding:20px;max-width:600px;margin:0 auto;}
+h1{background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:2rem;}
+input,select{width:100%;background:#111118;border:1px solid #2a2a3a;border-radius:8px;padding:12px;color:#e8e8f0;font-size:1rem;margin:8px 0;box-sizing:border-box;}
+button{width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#00e5ff);border:none;border-radius:8px;color:white;font-size:1rem;font-weight:bold;cursor:pointer;margin:8px 0;}
+.card{background:#16161f;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin:16px 0;}
+.progress-wrap{background:#111118;border-radius:100px;height:10px;margin:10px 0;}
+.progress-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#00e5ff);width:0%;transition:width 0.4s;}
+.success{color:#10b981;}.error{color:#ef4444;}.muted{color:#6b6b8a;font-size:0.8rem;}
+a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:white;text-align:center;font-weight:bold;text-decoration:none;margin-top:10px;}
+#preview,#progress-section,#result-section,#error-section{display:none;}
+</style></head>
+<body>
+<div style="text-align:center;margin-bottom:10px;">
+<img src="/static/icon.png?v=2" style="width:80px;height:80px;border-radius:20px;"/>
+</div>
+<h1>WAS-DL</h1>
+<p class="muted">YouTube · TikTok · Instagram · Facebook · 1000+ sites</p>
+<div class="card">
+<label class="muted">VIDEO URL</label>
+<input type="text" id="url" placeholder="https://youtube.com/watch?v=..."/>
+<button onclick="fetchInfo()">🔍 Inspect Video</button>
+<div id="preview">
+<img id="thumb" src="" style="width:100%;border-radius:8px;margin:10px 0;"/>
+<div id="vid-title" style="font-weight:bold;margin-bottom:8px;"></div>
+<div class="muted"><span id="vid-platform"></span> · <span id="vid-duration"></span></div>
+</div>
+<label class="muted" style="margin-top:12px;display:block;">QUALITY</label>
+<select id="quality">
+<option value="best">Best Available</option>
+<option value="1080">1080p HD</option>
+<option value="720">720p</option>
+<option value="480">480p</option>
+</select>
+<label class="muted">FORMAT</label>
+<select id="format">
+<option value="video">Video (MP4)</option>
+<option value="audio">Audio Only (MP3)</option>
+</select>
+<button onclick="startDownload()">⬇ Download</button>
+</div>
+<div id="error-section" class="card"><span class="error">⚠ </span><span id="error-msg"></span></div>
+<div id="progress-section" class="card">
+<div style="display:flex;justify-content:space-between;"><span id="prog-label">Downloading...</span><span id="prog-pct" class="success">0%</span></div>
+<div class="progress-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+<div class="muted">Speed: <span id="prog-speed">—</span> · ETA: <span id="prog-eta">—</span></div>
+</div>
+<div id="result-section" class="card">
+<div class="success" style="font-size:1.2rem;margin-bottom:8px;">✓ Download Complete!</div>
+<div id="result-name" class="muted"></div>
+<a id="result-link" class="dl-btn" href="#">💾 Save File</a>
+</div>
+<script>
+let jobId=null;let poll=null;
+document.getElementById('url').addEventListener('keydown',e=>{if(e.key==='Enter')fetchInfo();});
+function fmt(s){if(!s)return'?';let m=Math.floor(s/60),sec=s%60;return m+':'+(sec<10?'0':'')+sec;}
+function showErr(m){document.getElementById('error-section').style.display='block';document.getElementById('error-msg').textContent=m;}
+function hideErr(){document.getElementById('error-section').style.display='none';}
+async function fetchInfo(){
+  const url=document.getElementById('url').value.trim();
+  if(!url)return;hideErr();
+  try{
+    const r=await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+    const d=await r.json();
+    if(d.error){showErr(d.error);return;}
+    document.getElementById('thumb').src=d.thumbnail||'';
+    document.getElementById('vid-title').textContent=d.title||'';
+    document.getElementById('vid-platform').textContent=d.platform||'';
+    document.getElementById('vid-duration').textContent=fmt(d.duration);
+    document.getElementById('preview').style.display='block';
+  }catch(e){showErr('Server error');}
+}
+async function startDownload(){
+  const url=document.getElementById('url').value.trim();
+  if(!url){showErr('Enter a URL first');return;}
+  hideErr();
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('progress-section').style.display='block';
+  document.getElementById('prog-bar').style.width='0%';
+  document.getElementById('prog-pct').textContent='0%';
+  try{
+    const r=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,quality:document.getElementById('quality').value,format:document.getElementById('format').value})});
+    const d=await r.json();
+    if(d.error){showErr(d.error);return;}
+    jobId=d.job_id;pollProgress();
+  }catch(e){showErr('Server error');}
+}
+function pollProgress(){
+  if(poll)clearInterval(poll);
+  poll=setInterval(async()=>{
+    if(!jobId)return;
+    const r=await fetch('/api/progress/'+jobId);
+    const d=await r.json();
+    if(d.status==='downloading'){
+      document.getElementById('prog-label').textContent='Downloading...';
+      document.getElementById('prog-pct').textContent=d.percent+'%';
+      document.getElementById('prog-bar').style.width=d.percent+'%';
+      document.getElementById('prog-speed').textContent=d.speed||'—';
+      document.getElementById('prog-eta').textContent=d.eta||'—';
+    }else if(d.status==='processing'){
+      document.getElementById('prog-label').textContent='Processing...';
+      document.getElementById('prog-pct').textContent='99%';
+      document.getElementById('prog-bar').style.width='99%';
+    }else if(d.status==='done'){
+      clearInterval(poll);
+      document.getElementById('progress-section').style.display='none';
+      document.getElementById('result-section').style.display='block';
+      document.getElementById('result-name').textContent=d.filename||'';
+      document.getElementById('result-link').href='/api/file/'+jobId;
+    }else if(d.status==='error'){
+      clearInterval(poll);
+      document.getElementById('progress-section').style.display='none';
+      showErr(d.error||'Unknown error');
+    }
+  },1000);
+}
+</script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/static/sw.js');
+}
+</script>
+</body></html>
