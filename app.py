@@ -39,7 +39,7 @@ def do_download(url, quality, fmt, job_id):
             f = "bestaudio/best"
             pp = [{"key":"FFmpegExtractAudio","preferredcodec":"mp3"}]
         else:
-            q = {"best":"bestvideo+bestaudio/best","1080":"bestvideo[height<=1080]+bestaudio","720":"bestvideo[height<=720]+bestaudio","480":"bestvideo[height<=480]+bestaudio"}
+            q = {"best":"bestvideo+bestaudio/best","1080":"bestvideo[height<=1080]+bestaudio/best[height<=1080]/best","720":"bestvideo[height<=720]+bestaudio/best[height<=720]/best","480":"bestvideo[height<=480]+bestaudio/best[height<=480]/best"}
             f = q.get(quality,"bestvideo+bestaudio/best")
             pp = []
         out = str(DOWNLOAD_DIR / f"%(title)s_{job_id[:6]}.%(ext)s")
