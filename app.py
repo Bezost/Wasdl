@@ -1,11 +1,23 @@
 from flask import Flask, request, jsonify, send_file, render_template
-import yt_dlp, os, threading, uuid
+import yt_dlp, os, threading, uuid, time
 from pathlib import Path
+from collections import defaultdict
 
 app = Flask(__name__)
 DOWNLOAD_DIR = Path(os.path.expanduser("~/storage/dcim/VAULTDL"))
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 progress_store = {}
+request_counts = defaultdict(list)
+MAX_REQUESTS = 10
+TIME_WINDOW = 3600
+
+def is_rate_limited(ip):
+    now = time.time()
+    request_counts[ip] = [t for t in request_counts[ip] if now - t < TIME_WINDOW]
+    if len(request_counts[ip]) >= MAX_REQUESTS:
+        return True
+    request_counts[ip].append(now)
+    return False
 
 def progress_hook(d, job_id):
     if d["status"] == "downloading":
@@ -15,6 +27,11 @@ def progress_hook(d, job_id):
         progress_store[job_id] = {"status":"downloading","percent":round(percent,1),"speed":d.get("_speed_str",""),"eta":d.get("_eta_str","")}
     elif d["status"] == "finished":
         progress_store[job_id] = {"status":"processing","percent":99}
+
+def delete_later(fp):
+    time.sleep(3600)
+    try: os.remove(fp)
+    except: pass
 
 def do_download(url, quality, fmt, job_id):
     try:
@@ -33,6 +50,7 @@ def do_download(url, quality, fmt, job_id):
             for e in ["mp4","mkv","webm","mp3"]:
                 alt = filepath.rsplit(".",1)[0]+f".{e}"
                 if os.path.exists(alt): filepath=alt; break
+        threading.Thread(target=delete_later, args=(filepath,), daemon=True).start()
         progress_store[job_id] = {"status":"done","percent":100,"filename":os.path.basename(filepath),"filepath":filepath,"title":info.get("title","")}
     except Exception as e:
         progress_store[job_id] = {"status":"error","error":str(e)}
@@ -54,6 +72,9 @@ def info():
 @app.route("/api/download", methods=["POST"])
 def download():
     data = request.json
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    if is_rate_limited(ip):
+        return jsonify({"error":"Limit exceed! 1 ghante mein sirf 10 downloads allowed hain."}), 429
     job_id = str(uuid.uuid4())
     progress_store[job_id] = {"status":"starting","percent":0}
     threading.Thread(target=do_download, args=(data.get("url",""),data.get("quality","best"),data.get("format","video"),job_id), daemon=True).start()
@@ -71,13 +92,13 @@ def getfile(job_id):
         return jsonify({"error":"not found"}),404
     return send_file(fp, as_attachment=True)
 
-@app.route('/static/manifest.json')
+@app.route("/static/manifest.json")
 def manifest():
-    return send_file('static/manifest.json', mimetype='application/manifest+json')
+    return send_file("static/manifest.json", mimetype="application/manifest+json")
 
-@app.route('/static/sw.js')
+@app.route("/static/sw.js")
 def sw():
-    return send_file('static/sw.js', mimetype='application/javascript')
+    return send_file("static/sw.js", mimetype="application/javascript")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
