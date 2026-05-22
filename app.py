@@ -43,7 +43,7 @@ def do_download(url, quality, fmt, job_id):
             f = q.get(quality,"bestvideo+bestaudio/best")
             pp = []
         out = str(DOWNLOAD_DIR / f"%(title)s_{job_id[:6]}.%(ext)s")
-        opts = {"format":f,"outtmpl":out,"merge_output_format":"mp4","postprocessors":pp,"progress_hooks":[lambda d: progress_hook(d,job_id)],"noplaylist":True,"quiet":True,"cookiefile":"/etc/secrets/cookies.txt","extractor_args":{"youtube":{"player_client":["ios","web"],"player_skip":["webpage","configs"]}},"external_downloader":"aria2c","external_downloader_args":["-x16","-s16","-k1M"]}
+        opts = {"format":f,"outtmpl":out,"merge_output_format":"mp4","postprocessors":pp,"progress_hooks":[lambda d: progress_hook(d,job_id)],"noplaylist":True,"quiet":True,"cookiefile":"/etc/secrets/cookies.txt","extractor_args":{"youtube":{"player_client":["ios","android","web"],"player_skip":["webpage"]}},"compat_opts":["no-youtube-unavailable-videos"],"external_downloader":"aria2c","external_downloader_args":["-x16","-s16","-k1M"]}
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filepath = ydl.prepare_filename(info)
