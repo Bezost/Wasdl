@@ -34,7 +34,11 @@ a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:w
 <p class="muted">YouTube · TikTok · Instagram · Facebook · 1000+ sites</p>
 <div class="card">
 <label class="muted">VIDEO URL</label>
-<input type="text" id="url" placeholder="https://youtube.com/watch?v=..."/>
+<div style="position:relative;">
+<input type="text" id="url" placeholder="Paste video link here..." style="padding-right:80px;"/>
+<button onclick="pasteUrl()" style="position:absolute;right:40px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;margin:0;background:#2a2a4a;border:1px solid #3a3a5a;border-radius:6px;font-size:14px;" title="Paste">📋</button>
+<button onclick="clearUrl()" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;margin:0;background:#2a2a4a;border:1px solid #3a3a5a;border-radius:6px;font-size:16px;" title="Clear">✕</button>
+</div>
 <button onclick="fetchInfo()">🔍 Inspect Video</button>
 <div id="preview">
 <img id="thumb" src="" style="width:100%;border-radius:8px;margin:10px 0;"/>
@@ -63,12 +67,31 @@ a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:w
 </div>
 <div id="result-section" class="card">
 <div class="success" style="font-size:1.2rem;margin-bottom:8px;">✓ Download Complete!</div>
-<div id="result-name" class="muted"></div>
-<a id="result-link" class="dl-btn" href="#">💾 Save File</a>
+<div id="result-name" class="muted" style="margin-bottom:12px;"></div>
+<div style="background:#0d2b1f;border:1px solid #10b981;border-radius:10px;padding:16px;text-align:center;">
+<div style="font-size:24px;margin-bottom:6px;">🎬</div>
+<div style="color:#10b981;font-weight:600;font-size:0.95rem;">Video saved to your Gallery!</div>
+<div style="color:#6b6b8a;font-size:0.75rem;margin-top:4px;">Check your phone gallery — VAULTDL folder</div>
+</div>
 </div>
 <script>
 let jobId=null;let poll=null;
 document.getElementById('url').addEventListener('keydown',e=>{if(e.key==='Enter')fetchInfo();});
+async function pasteUrl(){
+  try{
+    const text = await navigator.clipboard.readText();
+    document.getElementById('url').value = text;
+  } catch(e){
+    document.getElementById('url').focus();
+  }
+}
+function clearUrl(){
+  document.getElementById('url').value='';
+  document.getElementById('url').focus();
+  document.getElementById('preview').style.display='none';
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('error-section').style.display='none';
+}
 function fmt(s){if(!s)return'?';let m=Math.floor(s/60),sec=s%60;return m+':'+(sec<10?'0':'')+sec;}
 function showErr(m){document.getElementById('error-section').style.display='block';document.getElementById('error-msg').textContent=m;}
 function hideErr(){document.getElementById('error-section').style.display='none';}
