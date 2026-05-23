@@ -43,12 +43,12 @@ button.main-btn{width:100%;padding:14px;background:linear-gradient(135deg,#7c3ae
 <img src="/static/icon.png?v=2" style="width:70px;height:70px;border-radius:18px;"/>
 </div>
 <h1 style="text-align:center;">WAS-DL</h1>
-<p class="subtitle" style="text-align:center;">YouTube · TikTok · Instagram · Facebook · 1000+ sites</p>
+<p class="subtitle" style="text-align:center;">YouTube · TikTok · Instagram · Facebook · 1000+ Sites</p>
 
 <div class="card">
-  <span class="label">Video URL</span>
+  <span class="label">VIDEO URL</span>
   <div class="url-row">
-    <input type="text" id="url" placeholder="Video link yahan paste karein..." oninput="onUrlInput()"/>
+    <input type="text" id="url" placeholder="Paste video link here..." oninput="onUrlInput()"/>
     <button class="toggle-btn paste" id="toggle-btn" onclick="toggleAction()">PASTE</button>
   </div>
 
@@ -162,7 +162,7 @@ function hideErr(){
 
 async function fetchInfo(){
   const url = document.getElementById('url').value.trim();
-  if(!url){showErr('Pehle link paste karein!');return;}
+  if(!url){showErr('Please paste a video link first!');return;}
   hideErr();
   try{
     const r = await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
@@ -173,12 +173,12 @@ async function fetchInfo(){
     document.getElementById('vid-platform').textContent = d.platform||'';
     document.getElementById('vid-duration').textContent = fmt(d.duration);
     document.getElementById('preview').style.display = 'block';
-  } catch(e){showErr('Server error!');}
+  } catch(e){showErr('Server error! Please try again.');}
 }
 
 async function startDownload(){
   const url = document.getElementById('url').value.trim();
-  if(!url){showErr('Pehle link paste karein!');return;}
+  if(!url){showErr('Please paste a video link first!');return;}
   hideErr();
   document.getElementById('result-section').style.display='none';
   document.getElementById('progress-section').style.display='block';
@@ -191,7 +191,7 @@ async function startDownload(){
     if(d.error){showErr(d.error);document.getElementById('progress-section').style.display='none';return;}
     jobId = d.job_id;
     pollProgress();
-  } catch(e){showErr('Server error!');}
+  } catch(e){showErr('Server error! Please try again.');}
 }
 
 function pollProgress(){
