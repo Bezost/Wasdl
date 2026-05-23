@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WAS-DL</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#00e5ff">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PVWBEY2Q4Q"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-PVWBEY2Q4Q");</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0f;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;max-width:560px;margin:0 auto;}
+h1{background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:2rem;text-align:center;}
+.sub{color:#6b6b8a;font-size:0.78rem;text-align:center;margin:6px 0 24px;}
+input,select{width:100%;background:#111118;border:1px solid #2a2a3a;border-radius:8px;padding:12px;color:#e8e8f0;font-size:0.95rem;margin:6px 0;outline:none;}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#7c3aed,#00e5ff);border:none;border-radius:8px;color:white;font-size:0.95rem;font-weight:700;cursor:pointer;margin:6px 0;}
+.card{background:#16161f;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin:14px 0;}
+.label{font-size:0.68rem;letter-spacing:2px;color:#6b6b8a;text-transform:uppercase;display:block;margin-bottom:4px;margin-top:10px;}
+.pw{background:#111118;border-radius:100px;height:8px;margin:10px 0;}
+.pb{height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#00e5ff);width:0%;transition:width 0.4s;}
+.green{color:#10b981;}
+.red{color:#ef4444;}
+.muted{color:#6b6b8a;font-size:0.78rem;}
+#preview,#prog-sec,#res-sec,#err-sec{display:none;}
+.url-row{display:flex;gap:8px;align-items:center;margin:6px 0;}
+.url-row input{flex:1;margin:0;}
+.tbtn{width:74px;height:46px;border:none;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;color:white;transition:all 0.2s;flex-shrink:0;}
+.tbtn.paste{background:linear-gradient(135deg,#00c853,#00e676);}
+.tbtn.clear{background:linear-gradient(135deg,#ef4444,#f87171);}
+.save-btn{display:inline-block;padding:10px 22px;background:linear-gradient(135deg,#10b981,#00e676);border-radius:8px;color:white;font-weight:600;font-size:0.88rem;text-decoration:none;margin-top:10px;}
+footer{text-align:center;padding:20px 0 10px;}
+footer p{font-size:11px;color:#3a3a5c;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div style="text-align:center;margin-bottom:10px;">
+<img src="/static/icon.png?v=2" style="width:66px;height:66px;border-radius:16px;"/>
+</div>
+<h1>WAS-DL</h1>
+<p class="sub">YouTube · TikTok · Instagram · Facebook · 1000+ Sites</p>
+<div class="card">
+  <span class="label">Video URL</span>
+  <div class="url-row">
+    <input type="text" id="url" placeholder="Paste video link here..." oninput="onInput()"/>
+    <button class="tbtn paste" id="tbtn" onclick="toggleAction()">PASTE</button>
+  </div>
+  <div id="preview" style="margin:10px 0;">
+    <img id="thumb" src="" style="width:100%;border-radius:8px;margin-bottom:8px;"/>
+    <div id="vtitle" style="font-weight:600;font-size:0.9rem;margin-bottom:4px;"></div>
+    <div class="muted"><span id="vplat"></span> · <span id="vdur"></span></div>
+  </div>
+  <button class="btn" onclick="fetchInfo()">🔍 Inspect Video</button>
+  <span class="label">Quality</span>
+  <select id="quality">
+    <option value="best">Best Available</option>
+    <option value="1080">1080p HD</option>
+    <option value="720">720p</option>
+    <option value="480">480p</option>
+  </select>
+  <span class="label">Format</span>
+  <select id="format">
+    <option value="video">Video (MP4)</option>
+    <option value="audio">Audio Only (MP3)</option>
+  </select>
+  <button class="btn" onclick="startDl()">⬇ Download</button>
+</div>
+
+<div id="err-sec" class="card"><span class="red">⚠ </span><span id="err-msg"></span></div>
+
+<div id="prog-sec" class="card">
+  <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+    <span id="prog-label">Downloading...</span>
+    <span id="prog-pct" class="green">0%</span>
+  </div>
+  <div class="pw"><div class="pb" id="pb"></div></div>
+  <div class="muted">Speed: <span id="prog-spd">—</span> · ETA: <span id="prog-eta">—</span></div>
+</div>
+
+<div id="res-sec" class="card" style="text-align:center;">
+  <div style="font-size:40px;margin-bottom:8px;">✅</div>
+  <div class="green" style="font-size:1rem;font-weight:700;margin-bottom:4px;">Download Complete!</div>
+  <div class="muted" id="res-name" style="font-size:0.72rem;margin-bottom:12px;"></div>
+  <a id="res-link" href="#" download class="save-btn">⬇ Save Video</a>
+  <div class="muted" style="margin-top:8px;font-size:0.72rem;">👆 Tap above to save video to your device</div>
+</div>
+
+<footer><p>Developed by Mr. Wajid Shah</p></footer>
+
+<script>
+if("serviceWorker" in navigator) navigator.serviceWorker.register("/static/sw.js");
+let jobId=null,poll=null;
+function onInput(){
+  const v=document.getElementById("url").value.trim();
+  const b=document.getElementById("tbtn");
+  if(v){b.textContent="CLEAR";b.className="tbtn clear";}
+  else{b.textContent="PASTE";b.className="tbtn paste";}
+}
+async function toggleAction(){
+  const v=document.getElementById("url").value.trim();
+  if(v){
+    document.getElementById("url").value="";
+    document.getElementById("preview").style.display="none";
+    document.getElementById("res-sec").style.display="none";
+    document.getElementById("err-sec").style.display="none";
+    document.getElementById("prog-sec").style.display="none";
+    onInput();
+  } else {
+    try{const t=await navigator.clipboard.readText();document.getElementById("url").value=t;onInput();}
+    catch(e){document.getElementById("url").focus();}
+  }
+}
+function fmt(s){if(!s)return"?";return Math.floor(s/60)+":"+(s%60<10?"0":"")+s%60;}
+function showErr(m){document.getElementById("err-sec").style.display="block";document.getElementById("err-msg").textContent=m;}
+function hideErr(){document.getElementById("err-sec").style.display="none";}
+async function fetchInfo(){
+  const url=document.getElementById("url").value.trim();
+  if(!url){showErr("Please paste a video link first!");return;}
+  hideErr();
+  try{
+    const r=await fetch("/api/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+    const d=await r.json();
+    if(d.error){showErr(d.error);return;}
+    document.getElementById("thumb").src=d.thumbnail||"";
+    document.getElementById("vtitle").textContent=d.title||"";
+    document.getElementById("vplat").textContent=d.platform||"";
+    document.getElementById("vdur").textContent=fmt(d.duration);
+    document.getElementById("preview").style.display="block";
+  }catch(e){showErr("Server error!");}
+}
+async function startDl(){
+  const url=document.getElementById("url").value.trim();
+  if(!url){showErr("Please paste a video link first!");return;}
+  hideErr();
+  document.getElementById("res-sec").style.display="none";
+  document.getElementById("prog-sec").style.display="block";
+  document.getElementById("pb").style.width="0%";
+  document.getElementById("prog-pct").textContent="0%";
+  document.getElementById("prog-label").textContent="Starting...";
+  try{
+    const r=await fetch("/api/download",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url,quality:document.getElementById("quality").value,format:document.getElementById("format").value})});
+    const d=await r.json();
+    if(d.error){showErr(d.error);document.getElementById("prog-sec").style.display="none";return;}
+    jobId=d.job_id;pollProg();
+  }catch(e){showErr("Server error!");}
+}
+function pollProg(){
+  if(poll)clearInterval(poll);
+  poll=setInterval(async()=>{
+    if(!jobId)return;
+    const r=await fetch("/api/progress/"+jobId);
+    const d=await r.json();
+    if(d.status==="downloading"){
+      document.getElementById("prog-label").textContent="Downloading...";
+      document.getElementById("prog-pct").textContent=d.percent+"%";
+      document.getElementById("pb").style.width=d.percent+"%";
+      document.getElementById("prog-spd").textContent=d.speed||"—";
+      document.getElementById("prog-eta").textContent=d.eta||"—";
+    } else if(d.status==="processing"){
+      document.getElementById("prog-label").textContent="Processing...";
+      document.getElementById("prog-pct").textContent="99%";
+      document.getElementById("pb").style.width="99%";
+    } else if(d.status==="done"){
+      clearInterval(poll);
+      document.getElementById("prog-sec").style.display="none";
+      document.getElementById("res-sec").style.display="block";
+      document.getElementById("res-name").textContent=d.filename||"";
+      document.getElementById("res-link").href="/api/file/"+jobId;
+    } else if(d.status==="error"){
+      clearInterval(poll);
+      document.getElementById("prog-sec").style.display="none";
+      showErr(d.error||"Unknown error");
+    }
+  },1000);
+}
+</script>
+</body></html>
