@@ -35,9 +35,8 @@ a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:w
 <div class="card">
 <label class="muted">VIDEO URL</label>
 <div style="position:relative;">
-<input type="text" id="url" placeholder="Paste video link here..." style="padding-right:80px;"/>
-<button onclick="pasteUrl()" style="position:absolute;right:40px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;margin:0;background:#2a2a4a;border:1px solid #3a3a5a;border-radius:6px;font-size:14px;" title="Paste">📋</button>
-<button onclick="clearUrl()" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);width:34px;height:34px;padding:0;margin:0;background:#2a2a4a;border:1px solid #3a3a5a;border-radius:6px;font-size:16px;" title="Clear">✕</button>
+<input type="text" id="url" placeholder="Paste video link here..." style="padding-right:90px;" oninput="toggleBtn()"/>
+<button id="paste-clear-btn" onclick="toggleAction()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 14px;margin:0;background:linear-gradient(135deg,#00c853,#00e676);border:none;border-radius:8px;color:white;font-family:-apple-system,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;">PASTE</button>
 </div>
 <button onclick="fetchInfo()">🔍 Inspect Video</button>
 <div id="preview">
@@ -77,6 +76,25 @@ a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:w
 <script>
 let jobId=null;let poll=null;
 document.getElementById('url').addEventListener('keydown',e=>{if(e.key==='Enter')fetchInfo();});
+function toggleBtn(){
+  const val = document.getElementById('url').value;
+  const btn = document.getElementById('paste-clear-btn');
+  if(val.length > 0){
+    btn.textContent = 'CLEAR';
+    btn.style.background = 'linear-gradient(135deg,#ef4444,#f87171)';
+  } else {
+    btn.textContent = 'PASTE';
+    btn.style.background = 'linear-gradient(135deg,#00c853,#00e676)';
+  }
+}
+async function toggleAction(){
+  const val = document.getElementById('url').value;
+  if(val.length > 0){
+    clearUrl();
+  } else {
+    await pasteUrl();
+  }
+}
 async function pasteUrl(){
   try{
     const text = await navigator.clipboard.readText();
