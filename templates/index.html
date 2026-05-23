@@ -6,18 +6,7 @@
 <meta name="theme-color" content="#00e5ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="WAS-DL">
-<style>
-body{background:#0a0a0f;color:#e8e8f0;font-family:monospace;padding:20px;max-width:600px;margin:0 auto;}
-h1{background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:2rem;}
-input,select{width:100%;background:#111118;border:1px solid #2a2a3a;border-radius:8px;padding:12px;color:#e8e8f0;font-size:1rem;margin:8px 0;box-sizing:border-box;}
-button{width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#00e5ff);border:none;border-radius:8px;color:white;font-size:1rem;font-weight:bold;cursor:pointer;margin:8px 0;}
-.card{background:#16161f;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin:16px 0;}
-.progress-wrap{background:#111118;border-radius:100px;height:10px;margin:10px 0;}
-.progress-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#00e5ff);width:0%;transition:width 0.4s;}
-.success{color:#10b981;}.error{color:#ef4444;}.muted{color:#6b6b8a;font-size:0.8rem;}
-a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:white;text-align:center;font-weight:bold;text-decoration:none;margin-top:10px;}
-#preview,#progress-section,#result-section,#error-section{display:none;}
-</style><!-- Google tag (gtag.js) -->
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PVWBEY2Q4Q"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -25,146 +14,208 @@ a.dl-btn{display:block;padding:14px;background:#10b981;border-radius:8px;color:w
   gtag('js', new Date());
   gtag('config', 'G-PVWBEY2Q4Q');
 </script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0a0f;color:#e8e8f0;font-family:monospace;padding:20px;max-width:600px;margin:0 auto;}
+h1{background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:2rem;margin-bottom:6px;}
+.subtitle{color:#6b6b8a;font-size:0.8rem;margin-bottom:24px;}
+select,input{width:100%;background:#111118;border:1px solid #2a2a3a;border-radius:8px;padding:12px;color:#e8e8f0;font-size:1rem;margin:8px 0;outline:none;}
+button.main-btn{width:100%;padding:14px;background:linear-gradient(135deg,#7c3aed,#00e5ff);border:none;border-radius:8px;color:white;font-size:1rem;font-weight:bold;cursor:pointer;margin:8px 0;}
+.card{background:#16161f;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin:16px 0;}
+.label{font-size:0.7rem;letter-spacing:2px;color:#6b6b8a;text-transform:uppercase;display:block;margin-bottom:4px;}
+.progress-wrap{background:#111118;border-radius:100px;height:10px;margin:10px 0;}
+.progress-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#7c3aed,#00e5ff);width:0%;transition:width 0.4s;}
+.success{color:#10b981;}
+.error-box{color:#ef4444;}
+.muted{color:#6b6b8a;font-size:0.8rem;}
+#preview,#progress-section,#result-section,#error-section{display:none;}
+
+/* URL Input Row */
+.url-row{display:flex;gap:8px;margin:8px 0;}
+.url-row input{flex:1;margin:0;}
+.toggle-btn{flex-shrink:0;width:80px;padding:0 10px;height:48px;border:none;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;transition:all 0.2s;color:white;white-space:nowrap;}
+.toggle-btn.paste{background:linear-gradient(135deg,#00c853,#00e676);}
+.toggle-btn.clear{background:linear-gradient(135deg,#ef4444,#f87171);}
+</style>
 </head>
 <body>
 <div style="text-align:center;margin-bottom:10px;">
-<img src="/static/icon.png?v=2" style="width:80px;height:80px;border-radius:20px;"/>
+<img src="/static/icon.png?v=2" style="width:70px;height:70px;border-radius:18px;"/>
 </div>
-<h1>WAS-DL</h1>
-<p class="muted">YouTube · TikTok · Instagram · Facebook · 1000+ sites</p>
+<h1 style="text-align:center;">WAS-DL</h1>
+<p class="subtitle" style="text-align:center;">YouTube · TikTok · Instagram · Facebook · 1000+ sites</p>
+
 <div class="card">
-<label class="muted">VIDEO URL</label>
-<div style="display:flex;gap:8px;align-items:center;">
-<input type="text" id="url" placeholder="Paste your video link..." style="flex:1;" oninput="toggleBtn()"/>
-<button id="paste-clear-btn" onclick="toggleAction()" style="flex-shrink:0;padding:12px 16px;margin:0;background:linear-gradient(135deg,#00c853,#00e676);border:none;border-radius:10px;color:white;font-family:-apple-system,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.2s;white-space:nowrap;">PASTE</button>
+  <span class="label">Video URL</span>
+  <div class="url-row">
+    <input type="text" id="url" placeholder="Video link yahan paste karein..." oninput="onUrlInput()"/>
+    <button class="toggle-btn paste" id="toggle-btn" onclick="toggleAction()">PASTE</button>
+  </div>
+
+  <div id="preview" style="margin:12px 0;">
+    <img id="thumb" src="" style="width:100%;border-radius:8px;margin-bottom:8px;"/>
+    <div id="vid-title" style="font-weight:bold;margin-bottom:6px;"></div>
+    <div class="muted"><span id="vid-platform"></span> · <span id="vid-duration"></span></div>
+  </div>
+
+  <button class="main-btn" onclick="fetchInfo()">🔍 Inspect Video</button>
+
+  <span class="label" style="margin-top:8px;">Quality</span>
+  <select id="quality">
+    <option value="best">Best Available</option>
+    <option value="1080">1080p HD</option>
+    <option value="720">720p</option>
+    <option value="480">480p</option>
+  </select>
+
+  <span class="label">Format</span>
+  <select id="format">
+    <option value="video">Video (MP4)</option>
+    <option value="audio">Audio Only (MP3)</option>
+  </select>
+
+  <button class="main-btn" onclick="startDownload()">⬇ Download</button>
 </div>
-<button onclick="fetchInfo()">🔍 Inspect Video</button>
-<div id="preview">
-<img id="thumb" src="" style="width:100%;border-radius:8px;margin:10px 0;"/>
-<div id="vid-title" style="font-weight:bold;margin-bottom:8px;"></div>
-<div class="muted"><span id="vid-platform"></span> · <span id="vid-duration"></span></div>
+
+<div id="error-section" class="card error-box">
+  ⚠ <span id="error-msg"></span>
 </div>
-<label class="muted" style="margin-top:12px;display:block;">QUALITY</label>
-<select id="quality">
-<option value="best">Best Available</option>
-<option value="1080">1080p HD</option>
-<option value="720">720p</option>
-<option value="480">480p</option>
-</select>
-<label class="muted">FORMAT</label>
-<select id="format">
-<option value="video">Video (MP4)</option>
-<option value="audio">Audio Only (MP3)</option>
-</select>
-<button onclick="startDownload()">⬇ Download</button>
-</div>
-<div id="error-section" class="card"><span class="error">⚠ </span><span id="error-msg"></span></div>
+
 <div id="progress-section" class="card">
-<div style="display:flex;justify-content:space-between;"><span id="prog-label">Downloading...</span><span id="prog-pct" class="success">0%</span></div>
-<div class="progress-wrap"><div class="progress-bar" id="prog-bar"></div></div>
-<div class="muted">Speed: <span id="prog-speed">—</span> · ETA: <span id="prog-eta">—</span></div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+    <span id="prog-label">Downloading...</span>
+    <span id="prog-pct" class="success">0%</span>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+  <div class="muted">Speed: <span id="prog-speed">—</span> · ETA: <span id="prog-eta">—</span></div>
 </div>
-<div id="result-section" class="card">
-<div class="success" style="font-size:1.2rem;margin-bottom:8px;">✓ Download Complete!</div>
-<div id="result-name" class="muted" style="margin-bottom:12px;"></div>
-<div style="background:#0d2b1f;border:1px solid #10b981;border-radius:10px;padding:16px;text-align:center;">
-<div style="font-size:24px;margin-bottom:6px;">🎬</div>
-<div style="color:#10b981;font-weight:600;font-size:0.95rem;">Video saved to your Gallery!</div>
-<div style="color:#6b6b8a;font-size:0.75rem;margin-top:4px;">Check your phone gallery — VAULTDL folder</div>
+
+<div id="result-section" class="card" style="text-align:center;">
+  <div style="font-size:48px;margin-bottom:10px;">🎬</div>
+  <div class="success" style="font-size:1.1rem;font-weight:bold;margin-bottom:6px;">Video Gallery mein Save Ho Gayi!</div>
+  <div class="muted" id="result-name"></div>
+  <div style="margin-top:12px;background:#0d2b1f;border:1px solid #10b981;border-radius:8px;padding:12px;">
+    <div style="color:#10b981;font-size:0.85rem;">📁 Apni Gallery mein VAULTDL folder check karein</div>
+  </div>
 </div>
-</div>
+
+<footer style="text-align:center;padding:24px 0 16px;">
+  <p style="font-family:-apple-system,sans-serif;font-size:12px;font-weight:500;color:#4a4a7a;letter-spacing:1px;">
+    Developed by Mr. Wajid Shah
+  </p>
+</footer>
+
 <script>
-let jobId=null;let poll=null;
-document.getElementById('url').addEventListener('keydown',e=>{if(e.key==='Enter')fetchInfo();});
-function toggleBtn(){
-  const val = document.getElementById('url').value;
-  const btn = document.getElementById('paste-clear-btn');
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/static/sw.js');
+}
+
+let jobId = null;
+let poll = null;
+
+function onUrlInput(){
+  const val = document.getElementById('url').value.trim();
+  const btn = document.getElementById('toggle-btn');
   if(val.length > 0){
     btn.textContent = 'CLEAR';
-    btn.style.background = 'linear-gradient(135deg,#ef4444,#f87171)';
+    btn.className = 'toggle-btn clear';
   } else {
     btn.textContent = 'PASTE';
-    btn.style.background = 'linear-gradient(135deg,#00c853,#00e676)';
+    btn.className = 'toggle-btn paste';
   }
 }
+
 async function toggleAction(){
-  const val = document.getElementById('url').value;
+  const val = document.getElementById('url').value.trim();
   if(val.length > 0){
-    clearUrl();
+    document.getElementById('url').value = '';
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('result-section').style.display = 'none';
+    document.getElementById('error-section').style.display = 'none';
+    document.getElementById('progress-section').style.display = 'none';
+    onUrlInput();
   } else {
-    await pasteUrl();
+    try{
+      const text = await navigator.clipboard.readText();
+      document.getElementById('url').value = text;
+      onUrlInput();
+    } catch(e){
+      document.getElementById('url').focus();
+    }
   }
 }
-async function pasteUrl(){
-  try{
-    const text = await navigator.clipboard.readText();
-    document.getElementById('url').value = text;
-  } catch(e){
-    document.getElementById('url').focus();
-  }
+
+function fmt(s){
+  if(!s) return '?';
+  const m = Math.floor(s/60), sec = s%60;
+  return m+':'+(sec<10?'0':'')+sec;
 }
-function clearUrl(){
-  document.getElementById('url').value='';
-  document.getElementById('url').focus();
-  document.getElementById('preview').style.display='none';
-  document.getElementById('result-section').style.display='none';
+
+function showErr(m){
+  document.getElementById('error-section').style.display='block';
+  document.getElementById('error-msg').textContent=m;
+}
+
+function hideErr(){
   document.getElementById('error-section').style.display='none';
 }
-function fmt(s){if(!s)return'?';let m=Math.floor(s/60),sec=s%60;return m+':'+(sec<10?'0':'')+sec;}
-function showErr(m){document.getElementById('error-section').style.display='block';document.getElementById('error-msg').textContent=m;}
-function hideErr(){document.getElementById('error-section').style.display='none';}
+
 async function fetchInfo(){
-  const url=document.getElementById('url').value.trim();
-  if(!url)return;hideErr();
+  const url = document.getElementById('url').value.trim();
+  if(!url){showErr('Pehle link paste karein!');return;}
+  hideErr();
   try{
-    const r=await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
-    const d=await r.json();
+    const r = await fetch('/api/info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+    const d = await r.json();
     if(d.error){showErr(d.error);return;}
-    document.getElementById('thumb').src=d.thumbnail||'';
-    document.getElementById('vid-title').textContent=d.title||'';
-    document.getElementById('vid-platform').textContent=d.platform||'';
-    document.getElementById('vid-duration').textContent=fmt(d.duration);
-    document.getElementById('preview').style.display='block';
-  }catch(e){showErr('Server error');}
+    document.getElementById('thumb').src = d.thumbnail||'';
+    document.getElementById('vid-title').textContent = d.title||'';
+    document.getElementById('vid-platform').textContent = d.platform||'';
+    document.getElementById('vid-duration').textContent = fmt(d.duration);
+    document.getElementById('preview').style.display = 'block';
+  } catch(e){showErr('Server error!');}
 }
+
 async function startDownload(){
-  const url=document.getElementById('url').value.trim();
-  if(!url){showErr('Enter a URL first');return;}
+  const url = document.getElementById('url').value.trim();
+  if(!url){showErr('Pehle link paste karein!');return;}
   hideErr();
   document.getElementById('result-section').style.display='none';
   document.getElementById('progress-section').style.display='block';
   document.getElementById('prog-bar').style.width='0%';
   document.getElementById('prog-pct').textContent='0%';
+  document.getElementById('prog-label').textContent='Starting...';
   try{
-    const r=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,quality:document.getElementById('quality').value,format:document.getElementById('format').value})});
-    const d=await r.json();
-    if(d.error){showErr(d.error);return;}
-    jobId=d.job_id;pollProgress();
-  }catch(e){showErr('Server error');}
+    const r = await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,quality:document.getElementById('quality').value,format:document.getElementById('format').value})});
+    const d = await r.json();
+    if(d.error){showErr(d.error);document.getElementById('progress-section').style.display='none';return;}
+    jobId = d.job_id;
+    pollProgress();
+  } catch(e){showErr('Server error!');}
 }
+
 function pollProgress(){
-  if(poll)clearInterval(poll);
-  poll=setInterval(async()=>{
-    if(!jobId)return;
-    const r=await fetch('/api/progress/'+jobId);
-    const d=await r.json();
+  if(poll) clearInterval(poll);
+  poll = setInterval(async()=>{
+    if(!jobId) return;
+    const r = await fetch('/api/progress/'+jobId);
+    const d = await r.json();
     if(d.status==='downloading'){
       document.getElementById('prog-label').textContent='Downloading...';
       document.getElementById('prog-pct').textContent=d.percent+'%';
       document.getElementById('prog-bar').style.width=d.percent+'%';
       document.getElementById('prog-speed').textContent=d.speed||'—';
       document.getElementById('prog-eta').textContent=d.eta||'—';
-    }else if(d.status==='processing'){
+    } else if(d.status==='processing'){
       document.getElementById('prog-label').textContent='Processing...';
       document.getElementById('prog-pct').textContent='99%';
       document.getElementById('prog-bar').style.width='99%';
-    }else if(d.status==='done'){
+    } else if(d.status==='done'){
       clearInterval(poll);
       document.getElementById('progress-section').style.display='none';
       document.getElementById('result-section').style.display='block';
       document.getElementById('result-name').textContent=d.filename||'';
-      document.getElementById('result-link').href='/api/file/'+jobId;
-    }else if(d.status==='error'){
+    } else if(d.status==='error'){
       clearInterval(poll);
       document.getElementById('progress-section').style.display='none';
       showErr(d.error||'Unknown error');
@@ -172,14 +223,4 @@ function pollProgress(){
   },1000);
 }
 </script>
-<script>
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/static/sw.js');
-}
-</script>
-<footer style="text-align:center;padding:20px 0 30px;margin-top:10px;">
-  <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:500;color:#4a4a7a;letter-spacing:1px;margin:0;">
-    Developed by Mr. Wajid Shah
-  </p>
-</footer>
 </body></html>
