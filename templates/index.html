@@ -37,6 +37,13 @@ footer p{font-size:11px;color:#3a3a5c;letter-spacing:1px;}
 </div>
 <h1>WAS-DL</h1>
 <p class="sub">YouTube · TikTok · Instagram · Facebook · 1000+ Sites</p>
+<div id="install-banner" style="background:linear-gradient(135deg,#7c3aed22,#00e5ff22);border:1px solid #7c3aed;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+  <div>
+    <div style="font-size:0.82rem;font-weight:700;color:#00e5ff;">📲 Install WAS-DL App</div>
+    <div style="font-size:0.7rem;color:#6b6b8a;margin-top:2px;">Add to home screen for quick access!</div>
+  </div>
+  <button onclick="installApp()" id="install-btn" style="flex-shrink:0;padding:8px 14px;background:linear-gradient(135deg,#7c3aed,#00e5ff);border:none;border-radius:8px;color:white;font-size:0.78rem;font-weight:700;cursor:pointer;">Install</button>
+</div>
 <div class="card">
   <span class="label">Video URL</span>
   <div class="url-row">
@@ -87,6 +94,27 @@ footer p{font-size:11px;color:#3a3a5c;letter-spacing:1px;}
 
 <script>
 if("serviceWorker" in navigator) navigator.serviceWorker.register("/static/sw.js");
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("install-banner").style.display="flex";
+});
+window.addEventListener("appinstalled", ()=>{
+  document.getElementById("install-banner").style.display="none";
+});
+async function installApp(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if(result.outcome==="accepted"){
+      document.getElementById("install-banner").style.display="none";
+    }
+    deferredPrompt = null;
+  } else {
+    alert("To install: tap browser menu → Add to Home Screen");
+  }
+}
 let jobId=null,poll=null;
 function onInput(){
   const v=document.getElementById("url").value.trim();
